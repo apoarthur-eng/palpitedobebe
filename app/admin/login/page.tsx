@@ -1,6 +1,8 @@
-import { redirect } from "next/navigation"; import bcrypt from "bcryptjs"; import { db } from "@/lib/db"; import { createSession } from "@/lib/auth";
+import { limited } from "@/lib/ratelimit"; import { headers } from "next/headers"; import { limited, ipOf } from "@/lib/rate"; import { redirect } from "next/navigation"; import bcrypt from "bcryptjs"; import { db } from "@/lib/db"; import { createSession } from "@/lib/auth";
 async function login(fd: FormData) {
   "use server";
+  if (limited("login", 6, 300_000)) redirect("/admin/login?erro=1");
+  if (limited("l" + ipOf(headers()), 8, 600000)) redirect("/admin/login?erro=1");
   const a = await db.admin.findUnique({ where: { email: String(fd.get("email")) } });
   if (!a || !(await bcrypt.compare(String(fd.get("password")), a.passwordHash))) redirect("/admin/login?erro=1");
   await createSession(a.id);

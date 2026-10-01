@@ -1,39 +1,65 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql"
-  url = env("DATABASE_URL") }
-enum Choice { BOY GIRL }
-enum Status { PENDING_PAYMENT_CONFIRMATION CONFIRMED REJECTED }
-model Participant { id String @id @default(cuid())
-  name String
-  whatsapp String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  predictions Prediction[] }
-model Prediction { id String @id @default(cuid())
-  code String @unique
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Choice {
+  BOY
+  GIRL
+}
+
+enum Status {
+  PENDING_PAYMENT_CONFIRMATION
+  CONFIRMED
+  REJECTED
+}
+
+model Participant {
+  id          String       @id @default(cuid())
+  name        String
+  whatsapp    String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  predictions Prediction[]
+}
+
+model Prediction {
+  id           String          @id @default(cuid())
+  code         String          @unique
   participantId String
-  participant Participant @relation(fields: [participantId], references: [id])
-  choice Choice
-  amount Int
-  status Status @default(PENDING_PAYMENT_CONFIRMATION)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  confirmedAt DateTime?
-  rejectedAt DateTime?
-  adminNote String?
+  participant  Participant     @relation(fields: [participantId], references: [id])
+  choice       Choice
+  amount       Int
+  status       Status          @default(PENDING_PAYMENT_CONFIRMATION)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  confirmedAt  DateTime?
+  rejectedAt   DateTime?
+  adminNote    String?
   reviewedById String?
-  logs AdminAuditLog[] }
-model Admin { id String @id @default(cuid())
-  email String @unique
+  logs         AdminAuditLog[]
+}
+
+model Admin {
+  id           String          @id @default(cuid())
+  email        String          @unique
   passwordHash String
-  logs AdminAuditLog[] }
-model AdminAuditLog { id String @id @default(cuid())
-  adminId String
-  admin Admin @relation(fields: [adminId], references: [id])
-  action String
+  logs         AdminAuditLog[]
+}
+
+model AdminAuditLog {
+  id           String      @id @default(cuid())
+  adminId      String
+  admin        Admin       @relation(fields: [adminId], references: [id])
+  action       String
   predictionId String?
-  prediction Prediction? @relation(fields: [predictionId], references: [id])
-  oldStatus Status?
-  newStatus Status?
-  note String?
-  createdAt DateTime @default(now()) }
+  prediction   Prediction? @relation(fields: [predictionId], references: [id])
+  oldStatus    Status?
+  newStatus    Status?
+  note         String?
+  createdAt    DateTime    @default(now())
+}

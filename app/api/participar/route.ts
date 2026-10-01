@@ -1,7 +1,9 @@
-import { NextResponse } from "next/server"; import { db } from "@/lib/db"; import { BET_CENTS } from "@/lib/config";
+import { NextResponse } from "next/server"; import { limited } from "@/lib/ratelimit"; import { db } from "@/lib/db"; import { limited, ipOf } from "@/lib/rate"; import { BET_CENTS } from "@/lib/config";
 const AL = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const gen = () => "PALP-" + Array.from({ length: 5 }, () => AL[Math.floor(Math.random() * AL.length)]).join("");
 export async function POST(req: Request) {
+  if (limited("part", 8)) return NextResponse.json({ error: "Muitas tentativas. Aguarde um minuto." }, { status: 429 });
+  if (limited("p" + ipOf(req.headers), 10, 600000)) return NextResponse.json({ error: "Muitas tentativas. Aguarde alguns minutos." }, { status: 429 });
   const b = await req.json().catch(() => ({}));
   const name = String(b.name ?? "").trim().slice(0, 120), wpp = String(b.whatsapp ?? "").replace(/\D/g, "");
   if (!name || wpp.length < 10 || wpp.length > 13 || !["BOY", "GIRL"].includes(b.choice))
